@@ -61,6 +61,7 @@ https://github.com/XTLS/Xray-core/search?q=NewReadVReader
 首先，排除test文件 和 wasm文件； 那么核心就是 readv_reader.go，common/buf/io.go，proxy/vless/encoding/encoding.go， 然后trojan估计和vless类似。
 
 
+## ReadV
 
 我们首先阅读 proxy/vless/encoding/encoding.go 的 ReadV函数
 
@@ -74,5 +75,17 @@ https://github.com/XTLS/Xray-core/search?q=NewReadVReader
 
 然后是从 context上下文中提取出 inbound，然后确定 iConn 的具体的值，然后如果 是 net.TCPConn 的话，似乎有更多判断，继续看
 
+首先rprx直接就告诉我们，这里就是splice的部分 `fmt.Println(conn.MARK, "Splice")`, 然后紧接着是如下代码
 
+```go
+runtime.Gosched() // necessary
+w, err := tc.ReadFrom(conn.Connection)
+if counter != nil {
+  counter.Add(w)
+}
+if statConn != nil && statConn.WriteCounter != nil {
+  statConn.WriteCounter.Add(w)
+}
+return err
+```
 
