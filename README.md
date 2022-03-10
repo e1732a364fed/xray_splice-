@@ -101,4 +101,30 @@ return err
 
 我对vless熟悉一点，先读vless
 
+关注这里 https://github.com/XTLS/Xray-core/blob/578d903a9e4c9c0f2b766da45f157613ae83e9b4/proxy/vless/outbound/outbound.go#L239
+
+它是在 getResponse里，和 rawConn 有关系，它整个函数的调用是：
+
+`err = encoding.ReadV(serverReader, clientWriter, timer, iConn.(*xtls.Conn), rawConn, counter, sctx)`
+
+
+那么再回过头看 readv函数，发现 rawConn根本没用到？？counter似乎是计算流量的，也不用管，前两个 传入的 serverReader 和 clientWriter 在splice过程中也没用到！
+
+也就是说，真正用到的只有 xtls.Conn 和 上下文提出来的 `*net.TCPConn`
+
+那么我们就有所理解了。实际上rprx只是 利用了一下“readv”，把tcp连接的情况隔离了出来，在这种情况下，实际上并不使用readv函数，而是直接用rprx的 `tc.ReadFrom(conn.Connection)` 函数
+
+在inbound.go里的用法应该是类似的，只是是在 postRequest 里。
+
+仔细思考，outbound的 getResponse，实际上就是 客户端 从 服务端读 的过程； inbound 的 postRequest，是向 客户端 发送数据的过程
+
+也就是说，在 ` 客户端 <- 服务端 ` 这个流向里，使用到了splice
+
+
+
+
+
+
+
+
 
