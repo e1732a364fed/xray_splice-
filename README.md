@@ -124,8 +124,10 @@ return err
 
 总之首先要明白，这个conn是 xtls的Conn，然后它的Connection 就是我 xtls- 文章里面说的那个，从一个私有成员升级为公开成员的 那个 Connection
 
+这个ReadFrom要直接查看golang的 net包
 
+具体是这个 https://cs.opensource.google/go/go/+/refs/tags/go1.17.8:src/net/tcpsock_posix.go;drc=refs%2Ftags%2Fgo1.17.8;l=48
 
-
+这里用到了splice！
 
 
