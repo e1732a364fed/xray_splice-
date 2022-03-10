@@ -64,4 +64,15 @@ https://github.com/XTLS/Xray-core/search?q=NewReadVReader
 
 我们首先阅读 proxy/vless/encoding/encoding.go 的 ReadV函数
 
+首先看 https://github.com/XTLS/Xray-core/blob/e93da4bd02f2420df87d7b0b44412fbfbad7c295/proxy/vless/encoding/encoding.go#L209
+
+这里 的 panic是 `panic("XTLS Splice: not TCP inbound")`, 果然ReadV和splice是有关系的吧？？
+
+首先里面定义了一个函数，然后返回了一个err，不知何故，为什么不直接放到代码里呢？
+
+首先是一个循环，然后判断 xtls.Conn 的 DirectIn, 这些我在 xtls解读时读过。这里竟然把 conn.DirectIn 又设成了false？
+
+然后是从 context上下文中提取出 inbound，然后确定 iConn 的具体的值，然后如果 是 net.TCPConn 的话，似乎有更多判断，继续看
+
+
 
