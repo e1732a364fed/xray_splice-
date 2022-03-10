@@ -170,6 +170,42 @@ func splice(c *netFD, r io.Reader) (written int64, err error, handled bool) {
 
 ```
 
+总之，只适用于 tcp之间，或者tcp和 unix domain socket 之间的数据传输，最后会用到 poll.Splice，poll你一点就会跳转到 https://pkg.go.dev/internal/poll
 
+## 如何在其他地方实现 splice
+
+那么虽然没用到readv，但是我们的连接都是基于tcp的啊，所以v2ray肯定是有可能实现splice的！
+
+等等，既然这个ReadFrom这么好用，为什么不都用呢？
+
+再查看ReadFrom的定义：
+
+`ReadFrom implements the io.ReaderFrom ReadFrom method.`
+
+再看 io.ReaderFrom
+
+```
+ReaderFrom is the interface that wraps the ReadFrom method.
+
+ReadFrom reads data from r until EOF or error. The return value n is the number of bytes read. Any error except EOF encountered during the read is also returned.
+
+The Copy function uses ReaderFrom if available.
+```
+
+读r 这个 Reader，一直读到 EOF 或者error，然后io.Copy 能用则也会用到。
+
+哎？好像没啥的样子，比如我最新的 v2ray_simple项目的 流量转发就是很简单的两个语句：
+
+```go
+go io.Copy(wrc, wlc)
+io.Copy(wlc, wrc)
+```
+是不是直接就用到了 Copy，然后就用到了 ReadFrom?
+
+显然不是，为啥？因为 按理说，Copy只会去查看 wlc，wrc是没实现 ReaderFrom，而不不知道你用没用到底层的tcp，这就是关键
+
+也就是说，想要转发流量，不能Copy最外层 的 Reader，除非你实现了 ReaderFrom，然后 直接或者间接地 调用了 `*net.TCP` 的 ReadFrom 函数才行
+
+总之，就是实现一个ReadFrom 函数而已，也不难 啊！ 什么splice流控，怎么不叫 ReadFrom流控。。
 
 
