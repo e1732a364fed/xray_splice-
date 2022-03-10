@@ -61,7 +61,7 @@ https://github.com/XTLS/Xray-core/search?q=NewReadVReader
 首先，排除test文件 和 wasm文件； 那么核心就是 readv_reader.go，common/buf/io.go，proxy/vless/encoding/encoding.go， 然后trojan估计和vless类似。
 
 
-## ReadV
+## ReadV函数
 
 我们首先阅读 proxy/vless/encoding/encoding.go 的 ReadV函数
 
@@ -91,8 +91,14 @@ return err
 
 核心就是 `tc.ReadFrom(conn.Connection)`, tc就是 上面从上下文提取出的 inbound中 提取出的 conn的具体的值，是 `*net.TCPConn`,
 
-然后它直接从xtls的连接里读取数据到 `*net.TCPConn` 了，
+然后它直接从xtls的连接里读取数据到 `*net.TCPConn` 了，然后读完就返回了，和后面的 buf.NewReadVReader 调用一点关系也没有！
 
 好像也没什么神奇的，咋就 splice了呢？？
+
+谁调用的ReadV？
+
+重新回到搜索页面，proxy/vless/inbound/inbound.go，proxy/vless/outbound/outbound.go, 以及trojan的server.go, 只有这三个地方调用到了！
+
+我对vless熟悉一点，先读vless
 
 
