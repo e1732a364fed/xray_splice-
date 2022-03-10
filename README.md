@@ -260,6 +260,19 @@ rprx的意思是，取消这里也是可以的？？
 
 我怀疑, 可能 和握手有关；也许直接判断握手包，就可以推定 所传递信息的内容，自然也就不需要对数据包部分 进行任何过滤
 
+想一想也是有道理的哦？比如一些抓包软件，比如wireshark，tcpdump之类，不是可以显示应用层到底是什么协议的吗？它们是怎么探测的我们就怎么来呗。它们肯定也是能探测握手包的吧
+
+既然rprx说了 tls1.3 可以做到不过滤，那么我们就直接研究tls1.3 好了
+
+## tls 1.3
+
+首先搜索到这个：
+https://halfrost.com/https_tls1-3_handshake/
+
+https://github.com/halfrost/Halfrost-Field/blob/master/contents/Protocol/TLS_1.3_Handshake_Protocol.md
+
+
+
 
 
 
