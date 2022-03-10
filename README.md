@@ -43,22 +43,6 @@ https://github.com/XTLS/Xray-core/search?q=splice
 13. testing/scenarios/vmess_test.go
 
 
-
-https://github.com/XTLS/Xray-core/search?q=NewReadVReader
-
-搜索 NewReadVReader 有六个文件冒出来
-
-1. common/buf/readv_reader.go
-2. common/buf/readv_reader_wasm.go
-3. common/buf/readv_test.go
-4. common/buf/io.go
-5. proxy/vless/encoding/encoding.go
-6. proxy/trojan/protocol.go
-
-
-首先，排除test文件 和 wasm文件； 那么NewReadVReader 相关的 核心代码就是 readv_reader.go，common/buf/io.go，proxy/vless/encoding/encoding.go， 然后trojan估计和vless类似。
-
-
 ## ReadV函数
 
 我们首先阅读 proxy/vless/encoding/encoding.go 的 ReadV函数
@@ -129,5 +113,63 @@ return err
 具体是这个 https://cs.opensource.google/go/go/+/refs/tags/go1.17.8:src/net/tcpsock_posix.go;drc=refs%2Ftags%2Fgo1.17.8;l=48
 
 这里用到了splice！
+
+总之，现在可以断定，splice与readv一毛钱关系都没有，只是rprx硬放到了readv函数里 进行处理
+
+readfrom的内容：
+
+```go
+func (c *TCPConn) readFrom(r io.Reader) (int64, error) {
+	if n, err, handled := splice(c.fd, r); handled {
+		return n, err
+	}
+	if n, err, handled := sendFile(c.fd, r); handled {
+		return n, err
+	}
+	return genericReadFrom(c, r)
+}
+```
+
+splice 的具体内容： https://cs.opensource.google/go/go/+/refs/tags/go1.17.8:src/net/splice_linux.go;drc=refs%2Ftags%2Fgo1.17.8;l=17
+
+```go
+
+// splice transfers data from r to c using the splice system call to minimize
+// copies from and to userspace. c must be a TCP connection. Currently, splice
+// is only enabled if r is a TCP or a stream-oriented Unix connection.
+//
+// If splice returns handled == false, it has performed no work.
+func splice(c *netFD, r io.Reader) (written int64, err error, handled bool) {
+	var remain int64 = 1 << 62 // by default, copy until EOF
+	lr, ok := r.(*io.LimitedReader)
+	if ok {
+		remain, r = lr.N, lr.R
+		if remain <= 0 {
+			return 0, nil, true
+		}
+	}
+
+	var s *netFD
+	if tc, ok := r.(*TCPConn); ok {
+		s = tc.fd
+	} else if uc, ok := r.(*UnixConn); ok {
+		if uc.fd.net != "unix" {
+			return 0, nil, false
+		}
+		s = uc.fd
+	} else {
+		return 0, nil, false
+	}
+
+	written, handled, sc, err := poll.Splice(&c.pfd, &s.pfd, remain)
+	if lr != nil {
+		lr.N -= written
+	}
+	return written, wrapSyscallError(sc, err), handled
+}
+
+```
+
+
 
 
