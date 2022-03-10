@@ -44,8 +44,6 @@ https://github.com/XTLS/Xray-core/search?q=splice
 
 
 
-
-
 https://github.com/XTLS/Xray-core/search?q=NewReadVReader
 
 搜索 NewReadVReader 有六个文件冒出来
@@ -58,7 +56,7 @@ https://github.com/XTLS/Xray-core/search?q=NewReadVReader
 6. proxy/trojan/protocol.go
 
 
-首先，排除test文件 和 wasm文件； 那么核心就是 readv_reader.go，common/buf/io.go，proxy/vless/encoding/encoding.go， 然后trojan估计和vless类似。
+首先，排除test文件 和 wasm文件； 那么NewReadVReader 相关的 核心代码就是 readv_reader.go，common/buf/io.go，proxy/vless/encoding/encoding.go， 然后trojan估计和vless类似。
 
 
 ## ReadV函数
@@ -95,7 +93,7 @@ return err
 
 好像也没什么神奇的，咋就 splice了呢？？
 
-谁调用的ReadV？
+### 谁调用的ReadV？
 
 重新回到搜索页面，proxy/vless/inbound/inbound.go，proxy/vless/outbound/outbound.go, 以及trojan的server.go, 只有这三个地方调用到了！
 
@@ -120,8 +118,11 @@ return err
 
 也就是说，在 ` 客户端 <- 服务端 ` 这个流向里，使用到了splice
 
+## 什么是ReadFrom
 
+到底什么情况？为什么 `tc.ReadFrom(conn.Connection)` 会用到splice？
 
+总之首先要明白，这个conn是 xtls的Conn，然后它的Connection 就是我 xtls- 文章里面说的那个，从一个私有成员升级为公开成员的 那个 Connection
 
 
 
