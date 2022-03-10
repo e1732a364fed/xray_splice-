@@ -10,6 +10,16 @@
 
 https://github.com/XTLS/Xray-core/search?q=splice
 
+有5个文件冒出来
+
+1. infra/conf/trojan.go
+2. proxy/trojan/protocol.go
+3. infra/conf/vless.go
+4. proxy/vless/encoding/encoding.go
+5. proxy/vless/vless.go
+
+这里面，似乎 proxy/vless/encoding/encoding.go 比较重要，而 splice在其中的 ReadV函数中出现
+
 
 先关注 splice 和 ReadV关联的代码。
 
@@ -17,7 +27,9 @@ https://github.com/XTLS/Xray-core/search?q=splice
 
 
 
-搜索 ReadV 有六个文件冒出来
+https://github.com/XTLS/Xray-core/search?q=NewReadVReader
+
+搜索 NewReadVReader 有六个文件冒出来
 
 1. common/buf/readv_reader.go
 2. common/buf/readv_reader_wasm.go
