@@ -210,5 +210,13 @@ io.Copy(wlc, wrc)
 
 然而，事实是这么简单吗？如果这样，为什么只有xtls有splice。是否和tls有关？
 
+xtls之所以搞了一个Connection，实际上就是把tls的底层的connection暴露了出来，应该就是tcp，所以实际上就是两个tcp互相拷贝，用到splice函数
+
+那么，我们摒弃xtls的其他不良代码，直接 复制golang的源代码，然后把Connection也暴露出来，不就一样了吗？
+
+不过，仔细想想，如果这样，那么就没有经历过tls加密，实际上完全不需要 魔改tls，因为这就和 vless裸奔是一个概念，当然快了！
+
+怪不得据说xtls快，因为它就是在用direct方式 下的 裸奔啊！ 二者缺一不可，1是必须direct，2是把底层连接暴露出来。这次Connection暴露出的根本原因终于知晓。
+
 
 
