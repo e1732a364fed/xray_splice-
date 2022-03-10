@@ -23,7 +23,7 @@ https://github.com/XTLS/Xray-core/search?q=splice
 
 先关注 splice 和 ReadV关联的代码。
 
-到底啥是ReadV啥是splice我可不懂，但是最开始xtls- 那个文章已经指出了，v2ray也是被提交过PR的，导致v2ray现在也是有readv的。如果v2ray也能用splice那是不是性能也能大增？所以这里是个重点
+到底啥是ReadV啥是splice我可不懂，但是最开始xtls- 那个文章已经指出了，v2ray也是被提交过PR的，导致v2ray现在也是有readv的。（不过经过后面仔细观察，发现现在v2ray的readv只是普通的readv函数，不是开头末尾都大写的 ReadV，ReadV才是关键！）如果v2ray也能用splice那是不是性能也能大增？所以这里是个重点
 
 
 搜索 ReadV，13个结果
@@ -218,5 +218,13 @@ xtls之所以搞了一个Connection，实际上就是把tls的底层的connectio
 
 怪不得据说xtls快，因为它就是在用direct方式 下的 裸奔啊！ 二者缺一不可，1是必须direct，2是把底层连接暴露出来。这次Connection暴露出的根本原因终于知晓。
 
+
+## 重新回顾xtls
+
+根据简单分析，splice等同于裸奔。只不过由于裸的是https，所以是没关系的，所以还真就只能xtls自己用
+
+总之，如果是裸奔的话，不用任何处理，golang默认就会调用splice函数
+
+我再回顾一下xtls吧！ 看看有没有微弱的可能， 在绕过xtls的缺点的情况下，直接使用direct 方式。rprx自己说过是可能的？
 
 
