@@ -291,7 +291,8 @@ https://github.com/halfrost/Halfrost-Field/blob/master/contents/Protocol/TLS_1.3
 
 
 
-总之，ClientHello 的结构体是已知的
+总之，ClientHello 的结构体是已知的，可以直接一个clienthello就推定，然后其它就不管了？？
+
 
 
 
