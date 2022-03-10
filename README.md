@@ -202,10 +202,13 @@ io.Copy(wlc, wrc)
 ```
 是不是直接就用到了 Copy，然后就用到了 ReadFrom?
 
-显然不是，为啥？因为 按理说，Copy只会去查看 wlc，wrc是没实现 ReaderFrom，而不不知道你用没用到底层的tcp，这就是关键
+显然不是，为啥？因为 按理说，Copy只会去查看 wlc，wrc是没实现 ReaderFrom，而不知道你用没用到底层的tcp，也不会魔幻地去调用你底层tcp的ReadFrom，这就是关键
 
 也就是说，想要转发流量，不能Copy最外层 的 Reader，除非你实现了 ReaderFrom，然后 直接或者间接地 调用了 `*net.TCP` 的 ReadFrom 函数才行
 
 总之，就是实现一个ReadFrom 函数而已，也不难 啊！ 什么splice流控，怎么不叫 ReadFrom流控。。
+
+然而，事实是这么简单吗？如果这样，为什么只有xtls有splice。是否和tls有关？
+
 
 
