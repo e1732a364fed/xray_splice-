@@ -102,6 +102,8 @@ return err
 
 也就是说，在 ` 客户端 <- 服务端 ` 这个流向里，使用到了splice
 
+还是两个都是读取？反正这个似乎我不太懂，好像都是读取，可以接着往下文看，“读取” 是很关键的。
+
 ## 什么是ReadFrom
 
 到底什么情况？为什么 `tc.ReadFrom(conn.Connection)` 会用到splice？
@@ -226,5 +228,30 @@ xtls之所以搞了一个Connection，实际上就是把tls的底层的connectio
 总之，如果是裸奔的话，不用任何处理，golang默认就会调用splice函数
 
 我再回顾一下xtls吧！ 看看有没有微弱的可能， 在绕过xtls的缺点的情况下，直接使用direct 方式。rprx自己说过是可能的？
+
+基础不够的同学，还是再读一下我之前的文章： https://github.com/hahahrfool/xtls-/blob/main/README.md
+
+首先，回顾splice发生的位置，是在 DirectIn，反过来说，DirectOut是不用管的。 而我暴露出的23 3 3 循环问题，是判断DirectOut的。似乎有戏？
+
+重新回到 https://github.com/XTLS/Go/blob/main/conn.go ， 搜索DirectIn，发现一共出现四处，就是在Conn.Read中出现的
+
+不过，它把DirectIn 重新设置成false有什么用吗？谁还会去调用Read函数呢？现在都已经直接开始裸奔对拷了
+
+总之，关键不是设成false，而是判断true，true的条件是 c.DirectPre， 而 它发生于 readRecordOrCCS， 总之这一段是没有什么大问题的
+
+但是，仅仅这样够不够？应该不够吧，一个巴掌拍不响啊，如果不判断 directout，直接判断 directin，那就相当于 发送时加密，读取时不加密，完全乱套了
+
+不过rprx也说了
+
+>Direct 其实并不需要魔改 TLS 库就可以实现，它不需要读过滤，甚至传输 TLSv1.3 时连写过滤都不需要，非常简洁、高效
+
+不过其实我还是没搞懂，怎么过滤都不需要了呢？？是因为，只要 判断了 “写过滤”， 读过滤就是自然可以 推定的？ 
+
+那么假设 只需判断 “写过滤”，为什么传输 TLS v1.3 时不需要写过滤？我 文章不是已经判断出了，所有的首包都要被判断吗？
+
+总之，上文的意思似乎指明，只要能找到传输 TLS v1.3 时 不需任何过滤的办法，就可以搞定一切
+
+
+
 
 
