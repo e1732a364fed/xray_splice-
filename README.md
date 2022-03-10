@@ -89,3 +89,10 @@ if statConn != nil && statConn.WriteCounter != nil {
 return err
 ```
 
+核心就是 `tc.ReadFrom(conn.Connection)`, tc就是 上面从上下文提取出的 inbound中 提取出的 conn的具体的值，是 `*net.TCPConn`,
+
+然后它直接从xtls的连接里读取数据到 `*net.TCPConn` 了，
+
+好像也没什么神奇的，咋就 splice了呢？？
+
+
