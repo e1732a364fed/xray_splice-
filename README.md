@@ -174,6 +174,37 @@ func splice(c *netFD, r io.Reader) (written int64, err error, handled bool) {
 
 总之，只适用于 tcp之间，或者tcp和 unix domain socket 之间的数据传输，最后会用到 poll.Splice，poll你一点就会跳转到 https://pkg.go.dev/internal/poll
 
+## runtime.Gosched()的理由
+
+根据 https://v2xtls.org/xray发布1-1-3版本/  ， 里面有这么一句话：
+
+>调整切换至 Splice 前的 CPU 出让方式为 runtime.Gosched()
+
+查看 官方文档 https://pkg.go.dev/runtime#Gosched ，
+
+>Gosched yields the processor, allowing other goroutines to run. It does not suspend the current goroutine, so execution resumes automatically.
+
+这是一种 协程（cooperative multitasking）的方法
+
+在xray的commit历史或者 blame中，可以发现 https://github.com/XTLS/Xray-core/commit/b3f3c5be8140f9b39bb519572bf517b2aa3192ac
+
+把 原来的 `time.Sleep(time.Millisecond)` 换成了 runtime.Gosched()
+
+看来，为了运行splice，这个语句似乎时必要的。为什么这样呢？
+
+搜索资料，“splice 系统调用可以在内核空间的读缓冲区 (read buffer) 和网络缓冲区 (socket buffer) 之间建立管道 (pipeline)，从而避免了两者之间的 CPU 拷贝操作”
+
+而且，使用splice还会进行 用户态 和 内核态的转换
+
+根据 https://stackoverflow.com/questions/12413510/why-is-this-go-code-blocking
+
+> it allocates CPU time to the various goroutines running within a given OS thread by having these routines interact with the scheduler in certain conditions. These 'interactions' occur when certain types of code are executed in a goroutine. In go's case this involves doing some kind of I/O, syscalls or memory allocation (in certain conditions).
+
+总之，我猜测，因为 splice是一个 阻塞的 系统级的 语句，一旦调用，将阻塞整个cpu线程；如果此时在相同线程上还有另一个goroutine的话，恐怕会因为这个阻塞，导致了这个另一个goroutine一直处于待命状态，这就会很尴尬。所以使用 runtime.Gosched()的话，可以让相同线程的其他goroutine接着完成它的任务，然后我们的splice会单独挪动到一个新线程去处理，这样就会好多了。
+
+而原本的 Read+Write的循环是不会出现这个问题的，因为一个For循环里有了多个语句，每一个语句运行结束后，都有可能交出运行权，让其他goroutine运行。
+
+
 ## 如何在其他地方实现 splice
 
 那么虽然没用到readv，但是我们的连接都是基于tcp的啊，所以v2ray肯定是有可能实现splice的！
