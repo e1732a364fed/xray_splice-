@@ -342,5 +342,13 @@ https://www.baeldung.com/linux/tcpdump-capture-ssl-handshake
 
 
 
+# 关于macos上的splice
+
+根据
+https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man2/sendfile.2.html
+
+macos是有 sendfile 系统函数的，所以 ReadFrom会调用 sendfile. 
+
+不过暂不知道sendfile和splice哪个好
 
 
