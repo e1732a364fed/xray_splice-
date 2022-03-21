@@ -26,7 +26,7 @@ https://github.com/XTLS/Xray-core/search?q=splice
 到底啥是ReadV啥是splice我可不懂，但是最开始xtls- 那个文章已经指出了，v2ray也是被提交过PR的，导致v2ray现在也是有readv的。（不过经过后面仔细观察，发现现在v2ray的readv只是普通的readv函数，不是开头末尾都大写的 ReadV，ReadV才是关键！）如果v2ray也能用splice那是不是性能也能大增？所以这里是个重点
 
 
-搜索 ReadV，13个结果
+搜索 readv，13个结果
 
 1. common/buf/readv_reader.go
 2. common/buf/readv_reader_wasm.go
