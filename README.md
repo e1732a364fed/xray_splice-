@@ -260,7 +260,7 @@ xtls之所以搞了一个Connection，实际上就是把tls的底层的connectio
 
 我再回顾一下xtls吧！ 看看有没有微弱的可能， 在绕过xtls的缺点的情况下，直接使用direct 方式。rprx自己说过是可能的？
 
-基础不够的同学，还是再读一下我之前的文章： https://github.com/hahahrfool/xtls-/blob/main/README.md
+基础不够的同学，还是再读一下我之前的文章： https://github.com/e1732a364fed/xtls-/blob/main/README.md
 
 首先，回顾splice发生的位置，是在 DirectIn，反过来说，DirectOut是不用管的。 而我暴露出的23 3 3 循环问题，是判断DirectOut的。似乎有戏？
 
